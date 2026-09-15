@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Опционный калькулятор</title>
+  <style>
+    :root {
+      --bg: #071016;
+      --panel: rgba(15, 28, 37, .82);
+      --panel-2: rgba(19, 35, 45, .74);
+      --line: rgba(183, 213, 224, .13);
+      --text: #f4f8f9;
+      --muted: #98aeb8;
+      --mint: #63f5bf;
+      --mint-dark: #143e34;
+      --coral: #ff786f;
+      --amber: #f7c76d;
+      --blue: #68b8ff;
+      --radius: 22px;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .32);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 14% 4%, rgba(54, 163, 135, .18), transparent 29rem),
+        radial-gradient(circle at 92% 22%, rgba(66, 119, 162, .15), transparent 26rem),
+        var(--bg);
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .shell { width: min(1480px, calc(100% - 40px)); margin: 0 auto; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 28px 0 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 760; letter-spacing: -.02em; }
+    .brand-mark {
+      width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px;
+      color: #05120e; background: var(--mint); box-shadow: 0 0 28px rgba(99,245,191,.25);
+    }
+    .header-note { color: var(--muted); font-size: 13px; }
+
+    .hero { padding: 54px 0 38px; max-width: 950px; }
+    .eyebrow { color: var(--mint); font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { margin: 14px 0 18px; font-size: clamp(42px, 7vw, 88px); line-height: .97; letter-spacing: -.065em; font-weight: 740; }
+    .hero p { margin: 0; max-width: 720px; color: #bfd0d6; font-size: clamp(17px, 2vw, 21px); line-height: 1.55; }
+    .hero-tags { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 26px; }
+    .tag { padding: 9px 13px; border: 1px solid var(--line); border-radius: 999px; color: #b9cbd2; font-size: 13px; background: rgba(255,255,255,.025); }
+
+    .strategy-strip { margin: 18px 0 26px; }
+    .section-label { display: flex; justify-content: space-between; align-items: end; margin-bottom: 14px; }
+    .section-label h2 { margin: 0; font-size: 19px; letter-spacing: -.02em; }
+    .section-label span { color: var(--muted); font-size: 13px; }
+    .strategies { display: grid; grid-template-columns: repeat(5, minmax(190px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+    .strategy {
+      min-width: 190px; min-height: 118px; padding: 17px; text-align: left; cursor: pointer;
+      border: 1px solid var(--line); border-radius: 17px; background: rgba(255,255,255,.025);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .strategy:hover { transform: translateY(-2px); border-color: rgba(99,245,191,.34); }
+    .strategy.active { border-color: var(--mint); background: linear-gradient(145deg, rgba(99,245,191,.14), rgba(99,245,191,.035)); }
+    .strategy .type { display: inline-block; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .11em; margin-bottom: 13px; }
+    .strategy strong { display: block; font-size: 15px; margin-bottom: 7px; }
+    .strategy small { color: var(--muted); line-height: 1.35; }
+
+    .workspace { display: grid; grid-template-columns: minmax(330px, .78fr) minmax(560px, 1.55fr); gap: 18px; padding-bottom: 70px; }
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(16px); box-shadow: var(--shadow); }
+    .controls { padding: 25px; }
+    .strategy-title { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+    .strategy-title h2 { margin: 0 0 7px; font-size: 27px; letter-spacing: -.035em; }
+    .strategy-title p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .risk-pill { flex: none; border-radius: 999px; padding: 7px 10px; color: var(--mint); background: var(--mint-dark); font-size: 11px; font-weight: 750; }
+    .logic { margin: 20px 0; padding: 14px 15px; border-left: 2px solid var(--mint); background: rgba(99,245,191,.045); color: #cfe0e4; font-size: 13px; line-height: 1.5; }
+    .details { display: grid; gap: 8px; margin: -8px 0 20px; }
+    .detail-row { padding: 12px 13px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.018); }
+    .detail-row strong { display: block; margin-bottom: 4px; color: var(--text); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+    .detail-row span { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .field-help { display: block; margin-top: 6px; color: #6f8791; font-size: 10px; line-height: 1.35; font-weight: 500; letter-spacing: 0; }
+    .global-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-bottom: 20px; }
+    label { display: block; color: var(--muted); font-size: 11px; font-weight: 720; letter-spacing: .035em; }
+    input[type="number"] {
+      width: 100%; margin-top: 7px; padding: 11px 12px; color: var(--text); border: 1px solid var(--line);
+      border-radius: 11px; outline: none; background: rgba(2,9,13,.52); transition: border-color .15s;
+    }
+    input[type="number"]:focus { border-color: var(--mint); }
+    .legs-title { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 10px; }
+    .legs-title span:first-child { font-size: 13px; font-weight: 700; }
+    .legs-title span:last-child { color: var(--muted); font-size: 11px; }
+    .leg { display: grid; grid-template-columns: 1.15fr .8fr .8fr .58fr; align-items: end; gap: 8px; padding: 11px; margin-bottom: 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-2); }
+    .leg-name { align-self: center; }
+    .leg-name strong { display: block; font-size: 13px; }
+    .leg-name small { color: var(--muted); font-size: 11px; }
+    .leg input { padding: 9px 8px; }
+    .spot-position { display: none; margin: 10px 0; padding: 12px; border-radius: 13px; background: rgba(104,184,255,.07); color: #badbfa; font-size: 12px; line-height: 1.45; }
+    .spot-position.visible { display: block; }
+    .assumption { margin-top: 17px; color: #738b95; font-size: 11px; line-height: 1.45; }
+
+    .visual { padding: 25px; min-width: 0; }
+    .visual-head { display: flex; justify-content: space-between; align-items: start; gap: 18px; margin-bottom: 18px; }
+    .visual-head h3 { margin: 0 0 5px; font-size: 17px; }
+    .visual-head p { margin: 0; color: var(--muted); font-size: 12px; }
+    .legend { display: flex; gap: 15px; color: var(--muted); font-size: 11px; }
+    .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--mint); }
+    .legend span:last-child::before { background: var(--blue); }
+    .chart-wrap { position: relative; height: 430px; border: 1px solid var(--line); border-radius: 17px; overflow: hidden; background: rgba(3,10,14,.48); }
+    canvas { display: block; width: 100%; height: 100%; }
+    .tooltip { position: absolute; pointer-events: none; opacity: 0; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: #101d24; box-shadow: 0 10px 30px rgba(0,0,0,.35); font-size: 11px; transform: translate(10px,-105%); transition: opacity .08s; white-space: nowrap; }
+    .simulator { margin-top: 17px; padding: 16px; border-radius: 15px; background: rgba(255,255,255,.028); }
+    .range-head { display: flex; justify-content: space-between; align-items: center; }
+    .range-head span:first-child { color: var(--muted); font-size: 12px; }
+    .range-head strong { font-size: 16px; }
+    input[type="range"] { width: 100%; margin: 13px 0 3px; accent-color: var(--mint); }
+    .range-ends { display: flex; justify-content: space-between; color: #647a84; font-size: 10px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+    .metric { min-height: 83px; padding: 13px; border: 1px solid var(--line); border-radius: 14px; background: rgba(3,10,14,.35); }
+    .metric span { display: block; margin-bottom: 8px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .07em; }
+    .metric strong { font-size: 16px; letter-spacing: -.02em; }
+    .positive { color: var(--mint) !important; }
+    .negative { color: var(--coral) !important; }
+    .footer-note { padding: 0 0 34px; color: #607782; font-size: 11px; text-align: center; }
+
+    @media (max-width: 1050px) {
+      .strategies { grid-template-columns: repeat(10, 205px); }
+      .workspace { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 650px) {
+      .shell { width: min(100% - 22px, 1480px); }
+      header { padding-top: 18px; }
+      .header-note { display: none; }
+      .hero { padding-top: 30px; }
+      .controls, .visual { padding: 17px; }
+      .leg { grid-template-columns: 1fr 1fr; }
+      .leg-name { grid-column: 1 / -1; }
+      .chart-wrap { height: 340px; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .visual-head { display: block; }
+      .legend { margin-top: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand"><span class="brand-mark">ƒ</span> Опционный калькулятор</div>
+      <div class="header-note">Модель результата на дату экспирации</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">Интерактивный учебник</div>
+        <h1>Увидеть стратегию<br>до сделки</h1>
+        <p>Выберите конструкцию, настройте страйки и премии — график покажет, где стратегия зарабатывает, где теряет и что произойдёт при движении рынка.</p>
+        <div class="hero-tags"><span class="tag">10 стратегий</span><span class="tag">Живой график P&amp;L</span><span class="tag">Без рыночных данных</span><span class="tag">Риск на экспирацию</span></div>
+      </section>
+
+      <section class="strategy-strip">
+        <div class="section-label"><h2>Выберите стратегию</h2><span>От простых к составным</span></div>
+        <div class="strategies" id="strategies"></div>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel controls">
+          <div class="strategy-title">
+            <div><h2 id="title"></h2><p id="subtitle"></p></div><span class="risk-pill" id="risk"></span>
+          </div>
+          <div class="logic" id="logic"></div>
+          <div class="details" id="details"></div>
+          <div class="global-inputs">
+            <label>Цена базового актива<input id="spot" type="number" min="1" step="1" value="3000"><span class="field-help">Текущая цена акции, индекса или фьючерса</span></label>
+            <label>Стоимость 1 пункта, ₽<input id="multiplier" type="number" min="0.01" step="1" value="1"><span class="field-help">Во сколько рублей превращается 1 пункт результата</span></label>
+          </div>
+          <div class="legs-title"><span>Ноги стратегии</span><span>Цена опциона = премия</span></div>
+          <div id="legs"></div>
+          <div class="spot-position" id="spotPosition"></div>
+          <div class="assumption">Например, если изменение результата на 1 пункт даёт 10 ₽ на вашем контракте, укажите стоимость пункта 10 ₽. Расчёт показывает результат на экспирацию. Комиссии, гарантийное обеспечение, изменение волатильности и временная стоимость до экспирации не учитываются.</div>
+        </aside>
+
+        <section class="panel visual">
+          <div class="visual-head">
+            <div><h3>Профиль прибыли и убытка</h3><p>По горизонтали — цена актива на экспирацию, по вертикали — результат</p></div>
+            <div class="legend"><span>Прибыль / убыток</span><span>Цена сейчас</span></div>
+          </div>
+          <div class="chart-wrap"><canvas id="chart"></canvas><div class="tooltip" id="tooltip"></div></div>
+          <div class="simulator">
+            <div class="range-head"><span>Цена базового актива на дату экспирации</span><strong id="scenarioPrice"></strong></div>
+            <input id="scenario" type="range" min="1200" max="4800" step="1" value="3000">
+            <div class="range-ends"><span id="rangeMin"></span><span id="rangeMax"></span></div>
+            <span class="field-help">Передвиньте ползунок и посмотрите, сколько стратегия заработает или потеряет, если в день экспирации базовый актив будет стоить указанную сумму.</span>
+          </div>
+          <div class="metrics">
+            <div class="metric"><span>Результат сценария</span><strong id="scenarioPnl"></strong></div>
+            <div class="metric"><span>Точки безубыточности</span><strong id="breakEvens"></strong></div>
+            <div class="metric"><span>Макс. прибыль</span><strong id="maxProfit"></strong></div>
+            <div class="metric"><span>Макс. убыток</span><strong id="maxLoss"></strong></div>
+          </div>
+        </section>
+      </section>
+    </main>
+    <div class="footer-note">Учебный инструмент, не является инвестиционной рекомендацией</div>
+  </div>
+
+  <script>
+    const templates = [
+      { id:'longCall', group:'Направленная', title:'Покупка Call', short:'Рост с ограниченным риском', subtitle:'Ставка на рост базового актива', risk:'Риск ограничен', logic:'Вы платите премию за право купить актив по страйку. Прибыль появляется, когда рост перекрывает уплаченную премию.', legs:[['call',1,3000,120]], bounds:['∞','Премия'] },
+      { id:'longPut', group:'Направленная', title:'Покупка Put', short:'Падение с ограниченным риском', subtitle:'Ставка на снижение базового актива', risk:'Риск ограничен', logic:'Вы платите премию за право продать актив по страйку. Чем сильнее падение ниже точки безубыточности, тем больше прибыль.', legs:[['put',1,3000,115]], bounds:['Ограничена','Премия'] },
+      { id:'straddle', group:'Волатильность', title:'Long Straddle', short:'Сильное движение в любую сторону', subtitle:'Покупка Call и Put на одном страйке', risk:'Риск ограничен', logic:'Стратегии не важно направление — нужен сильный выход цены из диапазона. Цена времени работает против обеих купленных ног.', legs:[['call',1,3000,120],['put',1,3000,115]], bounds:['∞','Сумма премий'] },
+      { id:'strangle', group:'Волатильность', title:'Long Strangle', short:'Дешевле, но нужен больший ход', subtitle:'Покупка OTM Put и OTM Call', risk:'Риск ограничен', logic:'Два купленных опциона с разными страйками. Вход дешевле стрэддла, но зона убытка шире и требуется более сильное движение.', legs:[['put',1,2850,65],['call',1,3150,70]], bounds:['∞','Сумма премий'] },
+      { id:'protectivePut', group:'Защита', title:'Защитный Put', short:'Страховка длинной позиции', subtitle:'Актив плюс купленный Put', risk:'Есть нижняя граница', logic:'Вы сохраняете потенциал роста актива, но Put ограничивает падение ниже выбранного страйка. Премия — стоимость страховки.', spotQty:1, legs:[['put',1,2850,65]], bounds:['∞','Ограничен Put'] },
+      { id:'coveredCall', group:'Доход', title:'Покрытый Call', short:'Премия в обмен на потенциал роста', subtitle:'Актив плюс проданный Call', risk:'Риск актива', logic:'Премия смягчает небольшое падение, но прибыль выше страйка ограничена: проданный Call забирает дальнейший рост.', spotQty:1, legs:[['call',-1,3150,70]], bounds:['Ограничена','Почти весь актив'] },
+      { id:'bullCall', group:'Спред', title:'Bull Call Spread', short:'Умеренный рост с известным риском', subtitle:'Купить Call ниже, продать Call выше', risk:'Риск ограничен', logic:'Купленный Call даёт участие в росте, проданный Call удешевляет вход и одновременно ограничивает максимальную прибыль.', legs:[['call',1,2950,145],['call',-1,3200,55]], bounds:['Ограничена','Нетто-премия'] },
+      { id:'bearPut', group:'Спред', title:'Bear Put Spread', short:'Умеренное падение с известным риском', subtitle:'Купить Put выше, продать Put ниже', risk:'Риск ограничен', logic:'Купленный Put приносит результат при падении, а проданный Put снижает стоимость стратегии и ограничивает прибыль.', legs:[['put',1,3050,145],['put',-1,2800,55]], bounds:['Ограничена','Нетто-премия'] },
+      { id:'butterfly', group:'Диапазон', title:'Call Butterfly', short:'Цена останется около центра', subtitle:'Спред «бабочка» из трёх страйков', risk:'Риск ограничен', logic:'Максимальная прибыль достигается на среднем страйке. Конструкция дешевле одиночного опциона, но требует точного попадания в цену.', legs:[['call',1,2800,245],['call',-2,3000,125],['call',1,3200,55]], bounds:['Ограничена','Нетто-премия'] },
+      { id:'ironCondor', group:'Диапазон', title:'Iron Condor', short:'Заработок внутри коридора', subtitle:'Put-спред плюс Call-спред', risk:'Риск ограничен', logic:'Стратегия получает нетто-премию и выигрывает, если цена остаётся между проданными страйками. Защитные крылья ограничивают риск.', legs:[['put',1,2700,35],['put',-1,2850,70],['call',-1,3150,70],['call',1,3300,32]], bounds:['Ограничена','Ограничен'] }
+    ];
+
+    const strategyDetails = {
+      longCall: {
+        when:'Вы ожидаете заметного роста цены и хотите заранее ограничить возможный убыток.',
+        profit:'На экспирацию Call стоит разницу между ценой актива и страйком. Сначала эта разница возвращает премию, затем начинается чистая прибыль.',
+        danger:'Если цена останется на страйке или ниже, опцион обесценится. Потеря ограничена уплаченной премией.'
+      },
+      longPut: {
+        when:'Вы ожидаете заметного падения цены либо хотите отдельно поставить на снижение без короткой позиции в активе.',
+        profit:'Put дорожает по внутренней стоимости, когда цена опускается ниже страйка. Чистая прибыль начинается после компенсации премии.',
+        danger:'При цене на страйке или выше Put не имеет внутренней стоимости. Максимальная потеря — уплаченная премия.'
+      },
+      straddle: {
+        when:'Вы ждёте сильного движения после важного события, но не уверены в направлении.',
+        profit:'Одна из двух ног — Call при росте или Put при падении — должна заработать больше, чем суммарная стоимость обоих опционов.',
+        danger:'Если цена останется около общего страйка, можно потерять обе премии. Стратегии требуется большое движение.'
+      },
+      strangle: {
+        when:'Вы ожидаете очень сильного движения, но хотите заплатить меньше, чем за Straddle.',
+        profit:'При выходе далеко выше Call-страйка или ниже Put-страйка прибыль активной ноги перекрывает две премии.',
+        danger:'Между страйками оба опциона истекают без внутренней стоимости. Точки безубыточности расположены дальше, чем у Straddle.'
+      },
+      protectivePut: {
+        when:'У вас уже есть базовый актив, вы хотите сохранить участие в росте, но ограничить последствия падения.',
+        profit:'При росте зарабатывает базовый актив за вычетом премии Put. При падении Put компенсирует убыток ниже своего страйка.',
+        danger:'Страховка не бесплатна: если рынок не упадёт, премия Put уменьшит доходность позиции.'
+      },
+      coveredCall: {
+        when:'У вас есть базовый актив, вы ждёте боковик или умеренный рост и готовы отказаться от прибыли выше выбранного страйка.',
+        profit:'Полученная премия приносит дополнительный доход. До страйка вы также участвуете в росте базового актива.',
+        danger:'Call ограничивает прибыль сверху, но почти не защищает от сильного падения актива — помогает только полученная премия.'
+      },
+      bullCall: {
+        when:'Вы ожидаете умеренного роста до определённой цели и хотите сделать вход дешевле покупки одного Call.',
+        profit:'Нижний Call растёт в цене. Верхний проданный Call уменьшает стоимость входа, но после его страйка прибыль перестаёт расти.',
+        danger:'Максимальный убыток равен чистой уплаченной премии. Максимальная прибыль также заранее ограничена.'
+      },
+      bearPut: {
+        when:'Вы ожидаете умеренного снижения до определённой цели и хотите удешевить покупку Put.',
+        profit:'Верхний купленный Put приносит результат при падении. Нижний проданный Put финансирует часть покупки, но ограничивает прибыль.',
+        danger:'При цене выше верхнего страйка теряется чистая премия. Ниже нижнего страйка прибыль больше не увеличивается.'
+      },
+      butterfly: {
+        when:'Вы ожидаете, что на экспирацию цена окажется около конкретного центрального уровня.',
+        profit:'Лучший результат достигается точно на среднем страйке: купленный нижний Call уже в деньгах, а верхний ещё нет.',
+        danger:'Зона прибыли узкая. Сильное движение в любую сторону приводит к небольшому заранее ограниченному убытку.'
+      },
+      ironCondor: {
+        when:'Вы ожидаете спокойный рынок и считаете, что цена останется внутри заданного коридора.',
+        profit:'Проданные внутренние опционы приносят премию. Если цена остаётся между ними, все четыре ноги дают максимальный итог.',
+        danger:'Выход за внутренний страйк начинает уменьшать прибыль. Купленные внешние опционы останавливают убыток за границами крыльев.'
+      }
+    };
+
+    const state = { template: templates[0], legs: [], spotQty:0, points:[] };
+    const $ = id => document.getElementById(id);
+    const fmt = (n, d=0) => new Intl.NumberFormat('ru-RU',{maximumFractionDigits:d, minimumFractionDigits:d}).format(n);
+    const money = n => `${n > 0 ? '+' : n < 0 ? '−' : ''}${fmt(Math.abs(n), 2)} ₽`;
+
+    function buildStrategies(){
+      $('strategies').innerHTML = templates.map((s,i)=>`<button class="strategy ${i===0?'active':''}" data-id="${s.id}"><span class="type">${s.group}</span><strong>${s.title}</strong><small>${s.short}</small></button>`).join('');
+      document.querySelectorAll('.strategy').forEach(b=>b.addEventListener('click',()=>selectStrategy(b.dataset.id)));
+    }
+
+    function selectStrategy(id){
+      state.template = templates.find(x=>x.id===id);
+      state.legs = state.template.legs.map(x=>({type:x[0], qty:x[1], strike:x[2], premium:x[3]}));
+      state.spotQty = state.template.spotQty || 0;
+      document.querySelectorAll('.strategy').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
+      $('title').textContent=state.template.title; $('subtitle').textContent=state.template.subtitle;
+      $('risk').textContent=state.template.risk; $('logic').textContent=state.template.logic;
+      const detail = strategyDetails[id];
+      $('details').innerHTML = `
+        <div class="detail-row"><strong>Когда использовать</strong><span>${detail.when}</span></div>
+        <div class="detail-row"><strong>Как возникает прибыль</strong><span>${detail.profit}</span></div>
+        <div class="detail-row"><strong>Главный риск</strong><span>${detail.danger}</span></div>`;
+      $('spotPosition').classList.toggle('visible',!!state.spotQty);
+      $('spotPosition').textContent = state.spotQty ? `В конструкцию включена длинная позиция в базовом активе по текущей цене. Количество: ${state.spotQty}.` : '';
+      renderLegs(); update();
+    }
+
+    function renderLegs(){
+      const names={call:'Call',put:'Put'};
+      $('legs').innerHTML=state.legs.map((l,i)=>`<div class="leg">
+        <div class="leg-name"><strong>${l.qty>0?'Купить':'Продать'} ${names[l.type]}</strong><small>${l.qty>0?'Long':'Short'} ${names[l.type]}</small></div>
+        <label>Страйк<input type="number" data-i="${i}" data-k="strike" value="${l.strike}" step="10"></label>
+        <label>Премия<input type="number" data-i="${i}" data-k="premium" value="${l.premium}" min="0" step="1"></label>
+        <label>Кол-во<input type="number" data-i="${i}" data-k="qty" value="${Math.abs(l.qty)}" min="1" step="1"></label>
+      </div>`).join('');
+      $('legs').querySelectorAll('input').forEach(el=>el.addEventListener('input',()=>{
+        const i=+el.dataset.i, k=el.dataset.k, v=+el.value||0;
+        state.legs[i][k] = k==='qty' ? Math.sign(state.legs[i].qty)*v : v; update();
+      }));
+    }
+
+    function pnlAt(price){
+      const spot=+$('spot').value||0, mult=+$('multiplier').value||1;
+      let pnl=state.spotQty*(price-spot);
+      state.legs.forEach(l=>{
+        const intrinsic=l.type==='call'?Math.max(price-l.strike,0):Math.max(l.strike-price,0);
+        pnl += l.qty*(intrinsic-l.premium);
+      });
+      return pnl*mult;
+    }
+
+    function update(){
+      const spot=Math.max(1,+$('spot').value||1);
+      const strikes=state.legs.map(x=>x.strike).filter(Boolean);
+      const low=Math.max(0,Math.min(spot,...strikes)*.55), high=Math.max(spot,...strikes)*1.45;
+      const steps=360; state.points=[];
+      for(let i=0;i<=steps;i++){const x=low+(high-low)*i/steps; state.points.push({x,y:pnlAt(x)});}
+      $('scenario').min=Math.round(low); $('scenario').max=Math.round(high);
+      if(+$('scenario').value<low||+$('scenario').value>high) $('scenario').value=spot;
+      $('rangeMin').textContent=fmt(low); $('rangeMax').textContent=fmt(high);
+      const bes=findBreakEvens(state.points);
+      $('breakEvens').textContent=bes.length?bes.map(x=>fmt(x,1)).join(' · '):'—';
+      $('maxProfit').textContent=state.template.bounds[0]; $('maxLoss').textContent=state.template.bounds[1];
+      updateScenario(); draw();
+    }
+
+    function findBreakEvens(points){
+      const roots=[];
+      for(let i=1;i<points.length;i++){
+        const a=points[i-1],b=points[i];
+        if(a.y===0) roots.push(a.x);
+        else if((a.y<0&&b.y>0)||(a.y>0&&b.y<0)) roots.push(a.x+(b.x-a.x)*(-a.y)/(b.y-a.y));
+      }
+      return roots.filter((x,i)=>i===0||Math.abs(x-roots[i-1])>2);
+    }
+
+    function updateScenario(){
+      const p=+$('scenario').value, result=pnlAt(p);
+      $('scenarioPrice').textContent=`${fmt(p)} пунктов`;
+      $('scenarioPnl').textContent=money(result); $('scenarioPnl').className=result>0?'positive':result<0?'negative':'';
+    }
+
+    function draw(hoverX=null){
+      const canvas=$('chart'), box=canvas.parentElement.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2);
+      canvas.width=box.width*dpr; canvas.height=box.height*dpr;
+      const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+      const W=box.width,H=box.height,pad={l:61,r:22,t:25,b:42};
+      const xs=state.points.map(p=>p.x), ys=state.points.map(p=>p.y); let minY=Math.min(...ys,0),maxY=Math.max(...ys,0);
+      const ySpan=Math.max(maxY-minY,10); minY-=ySpan*.16; maxY+=ySpan*.16;
+      const minX=xs[0],maxX=xs[xs.length-1], x=v=>pad.l+(v-minX)/(maxX-minX)*(W-pad.l-pad.r), y=v=>pad.t+(maxY-v)/(maxY-minY)*(H-pad.t-pad.b);
+      ctx.clearRect(0,0,W,H); ctx.font='11px Inter, sans-serif'; ctx.lineWidth=1;
+      for(let i=0;i<=5;i++){const val=minY+(maxY-minY)*i/5,py=y(val);ctx.strokeStyle='rgba(183,213,224,.09)';ctx.beginPath();ctx.moveTo(pad.l,py);ctx.lineTo(W-pad.r,py);ctx.stroke();ctx.fillStyle='#6f8791';ctx.textAlign='right';ctx.fillText(fmt(val,0),pad.l-10,py+4);}
+      for(let i=0;i<=6;i++){const val=minX+(maxX-minX)*i/6,px=x(val);ctx.fillStyle='#6f8791';ctx.textAlign='center';ctx.fillText(fmt(val,0),px,H-17);}
+      const zero=y(0); ctx.strokeStyle='rgba(244,248,249,.35)';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(pad.l,zero);ctx.lineTo(W-pad.r,zero);ctx.stroke();ctx.setLineDash([]);
+      const spot=+$('spot').value||0, sx=x(spot);ctx.strokeStyle='rgba(104,184,255,.7)';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(sx,pad.t);ctx.lineTo(sx,H-pad.b);ctx.stroke();ctx.setLineDash([]);
+      const grad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);grad.addColorStop(0,'rgba(99,245,191,.19)');grad.addColorStop(.65,'rgba(99,245,191,.025)');grad.addColorStop(1,'rgba(255,120,111,.10)');
+      ctx.beginPath();state.points.forEach((p,i)=>i?ctx.lineTo(x(p.x),y(p.y)):ctx.moveTo(x(p.x),y(p.y)));ctx.lineTo(x(maxX),zero);ctx.lineTo(x(minX),zero);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+      ctx.beginPath();state.points.forEach((p,i)=>i?ctx.lineTo(x(p.x),y(p.y)):ctx.moveTo(x(p.x),y(p.y)));ctx.strokeStyle='#63f5bf';ctx.lineWidth=2.5;ctx.shadowColor='rgba(99,245,191,.32)';ctx.shadowBlur=10;ctx.stroke();ctx.shadowBlur=0;
+      if(hoverX!==null){const price=minX+(hoverX-pad.l)/(W-pad.l-pad.r)*(maxX-minX), clamped=Math.max(minX,Math.min(maxX,price)), py=y(pnlAt(clamped)),px=x(clamped);ctx.fillStyle='#f4f8f9';ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fill();return {price:clamped,pnl:pnlAt(clamped),x:px,y:py};}
+    }
+
+    $('spot').addEventListener('input',update); $('multiplier').addEventListener('input',update);
+    $('scenario').addEventListener('input',updateScenario); window.addEventListener('resize',()=>draw());
+    $('chart').addEventListener('mousemove',e=>{const rect=e.target.getBoundingClientRect(), info=draw(e.clientX-rect.left),tip=$('tooltip');tip.style.opacity=1;tip.style.left=`${info.x}px`;tip.style.top=`${info.y}px`;tip.innerHTML=`Цена: <b>${fmt(info.price,1)}</b><br>Результат: <b class="${info.pnl>=0?'positive':'negative'}">${money(info.pnl)}</b>`;});
+    $('chart').addEventListener('mouseleave',()=>{$('tooltip').style.opacity=0;draw();});
+    buildStrategies(); selectStrategy('longCall');
+  </script>
+</body>
+</html>
